@@ -1,7 +1,7 @@
 package com.api.consumer.service;
 
-import com.api.consumer.model.Message;
+import com.api.consumer.model.MessageModel;
 
 public interface ConsumeServiceL {
-    void action(Message message) throws Exception;
+    void action(MessageModel message) throws Exception;
 }

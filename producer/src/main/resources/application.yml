@@ -13,3 +13,5 @@ spring:
          producer: rk.producer.aula-spring
        deadletter:
          producer: dk.producer.aula-spring
+       parkinglot:
+         producer: pl.producer.aula-spring

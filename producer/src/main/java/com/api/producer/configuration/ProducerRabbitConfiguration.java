@@ -1,15 +1,9 @@
 package com.api.producer.configuration;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 public class ProducerRabbitConfiguration {
@@ -19,6 +13,8 @@ public class ProducerRabbitConfiguration {
     private String exchange;
     @Value("${spring.rabbitmq.request.deadletter.producer}")
     private String deadletter;
+    @Value("${spring.rabbitmq.request.parkinglot.producer}")
+    private String parkinglot;
 
     @Bean
     DirectExchange exchange(){
@@ -26,15 +22,28 @@ public class ProducerRabbitConfiguration {
     }
     @Bean
     Queue deadletter(){
-        return new Queue(deadletter);
+
+       return QueueBuilder.durable(deadletter)
+               .deadLetterExchange(exchange)
+               .deadLetterRoutingKey(queue)
+               .build();
     }
 
     @Bean
     Queue queue(){
-        Map<String,Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange",exchange);
-        args.put("x-dead-letter-routing-key",deadletter);
-        return new Queue(queue, true,false,false,args);
+        return QueueBuilder.durable(queue)
+                .deadLetterExchange(exchange)
+                .deadLetterRoutingKey(deadletter)
+                .build();
+
+//        Map<String,Object> args = new HashMap<>();
+//        args.put("x-dead-letter-exchange",exchange);
+//        args.put("x-dead-letter-routing-key",deadletter);
+//        return new Queue(queue, true,false,false,args);
+    }
+    @Bean
+    Queue parkingLot(){
+       return new Queue(parkinglot);
     }
     @Bean
     Binding bindingQueue(){
@@ -45,5 +54,12 @@ public class ProducerRabbitConfiguration {
     public Binding bindingDeadLetter(){
         return BindingBuilder.bind(deadletter())
                 .to(exchange()).with(deadletter);
+    }
+
+    @Bean
+    public Binding bindingParkingLot(){
+        return BindingBuilder.bind(parkingLot())
+                .to(exchange())
+                .with(parkinglot);
     }
 }
